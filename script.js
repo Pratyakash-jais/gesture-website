@@ -40,32 +40,31 @@ const hands = new Hands({
 
 hands.setOptions({
   maxNumHands: 1,
-  minDetectionConfidence: 0.7,
-  minTrackingConfidence: 0.7
+minDetectionConfidence: 0.4,
+minTrackingConfidence: 0.4
 });
 
+const canvas = document.createElement("canvas");
+document.body.appendChild(canvas);
+const ctx = canvas.getContext("2d");
+
 hands.onResults(results => {
-  if (!results.multiHandLandmarks.length) return;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  let hand = results.multiHandLandmarks[0];
-  let indexFinger = hand[8];
+  if (results.multiHandLandmarks.length > 0) {
+    statusText.innerText = "Hand Detected ✋";
 
-  let currentX = indexFinger.x;
-
-  if (!cooldown) {
-    if (currentX - prevX > 0.08) {
-      statusText.innerText = "👉 Swipe Right → Next";
-      nextSlide();
-      triggerCooldown();
-    }
-    else if (prevX - currentX > 0.08) {
-      statusText.innerText = "👈 Swipe Left → Previous";
-      prevSlide();
-      triggerCooldown();
-    }
+    results.multiHandLandmarks.forEach(hand => {
+      hand.forEach(point => {
+        ctx.beginPath();
+        ctx.arc(point.x * 400, point.y * 300, 5, 0, 2 * Math.PI);
+        ctx.fillStyle = "red";
+        ctx.fill();
+      });
+    });
+  } else {
+    statusText.innerText = "No Hand ❌";
   }
-
-  prevX = currentX;
 });
 
 function triggerCooldown() {
