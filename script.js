@@ -38,38 +38,48 @@ const hands = new Hands({
   locateFile: file => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
 });
 
-hands.setOptions({
-  maxNumHands: 1,
-minDetectionConfidence: 0.4,
-minTrackingConfidence: 0.4
-});
-
-const canvas = document.createElement("canvas");
-document.body.appendChild(canvas);
-const ctx = canvas.getContext("2d");
+let prevX = null;
+let cooldown = false;
 
 hands.onResults(results => {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  if (results.multiHandLandmarks.length > 0) {
-    statusText.innerText = "Hand Detected ✋";
-
-    results.multiHandLandmarks.forEach(hand => {
-      hand.forEach(point => {
-        ctx.beginPath();
-        ctx.arc(point.x * 400, point.y * 300, 5, 0, 2 * Math.PI);
-        ctx.fillStyle = "red";
-        ctx.fill();
-      });
-    });
-  } else {
+  if (!results.multiHandLandmarks || results.multiHandLandmarks.length === 0) {
     statusText.innerText = "No Hand ❌";
+    prevX = null;
+    return;
   }
+
+  statusText.innerText = "Hand Detected ✋";
+
+  let x = results.multiHandLandmarks[0][8].x; // index finger
+
+  if (prevX === null) {
+    prevX = x;
+    return;
+  }
+
+  let movement = x - prevX;
+
+  console.log("Movement:", movement);
+
+  if (!cooldown) {
+    if (movement > 0.05) {   // 🔥 easier detection
+      statusText.innerText = "👉 NEXT";
+      nextSlide();
+      triggerCooldown();
+    }
+    else if (movement < -0.05) {
+      statusText.innerText = "👈 PREVIOUS";
+      prevSlide();
+      triggerCooldown();
+    }
+  }
+
+  prevX = x;
 });
 
 function triggerCooldown() {
   cooldown = true;
-  setTimeout(() => cooldown = false, 1000);
+  setTimeout(() => cooldown = false, 800);
 }
 
 // Start Camera
