@@ -32,7 +32,8 @@ body {
 }
 
 video {
-  width: 250px;
-  margin-top: 20px;
+  width: 300px;
+  display: block;
+  margin: 20px auto;
   border-radius: 10px;
 }

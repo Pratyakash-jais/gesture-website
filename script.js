@@ -82,13 +82,23 @@ function triggerCooldown() {
   setTimeout(() => cooldown = false, 800);
 }
 
-// Start Camera
-const camera = new Camera(video, {
-  onFrame: async () => {
-    await hands.send({ image: video });
-  },
-  width: 300,
-  height: 200
-});
+const video = document.getElementById('video');
 
-camera.start();
+// Start camera
+async function startCamera() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+    video.srcObject = stream;
+
+    video.onloadedmetadata = () => {
+      video.play();
+      console.log("Camera started ✅");
+    };
+
+  } catch (err) {
+    alert("Camera permission denied ❌");
+    console.error(err);
+  }
+}
+
+startCamera();
