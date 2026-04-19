@@ -1,17 +1,41 @@
 const video = document.getElementById('video');
 const statusText = document.getElementById('status');
 
-// Open Camera
+let slides = document.querySelectorAll('.slide');
+let currentSlide = 0;
+
+let prevX = 0;
+let cooldown = false;
+
+// Camera
 navigator.mediaDevices.getUserMedia({ video: true })
 .then(stream => {
   video.srcObject = stream;
 });
 
-// Setup MediaPipe
-const hands = new Hands({
-  locateFile: file => {
-    return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
+// Slide Functions
+function showSlide(index) {
+  slides.forEach(s => s.classList.remove('active'));
+  slides[index].classList.add('active');
+}
+
+function nextSlide() {
+  if (currentSlide < slides.length - 1) {
+    currentSlide++;
+    showSlide(currentSlide);
   }
+}
+
+function prevSlide() {
+  if (currentSlide > 0) {
+    currentSlide--;
+    showSlide(currentSlide);
+  }
+}
+
+// MediaPipe Setup
+const hands = new Hands({
+  locateFile: file => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
 });
 
 hands.setOptions({
@@ -20,29 +44,42 @@ hands.setOptions({
   minTrackingConfidence: 0.7
 });
 
-// Detect Gesture
 hands.onResults(results => {
-  if (results.multiHandLandmarks.length > 0) {
-    let indexFinger = results.multiHandLandmarks[0][8];
+  if (!results.multiHandLandmarks.length) return;
 
-    if (indexFinger.y < 0.4) {
-      statusText.innerText = "☝️ Finger Up → Scroll";
-      window.scrollBy(0, -10);
-    } else {
-      statusText.innerText = "✋ Hand Detected";
+  let hand = results.multiHandLandmarks[0];
+  let indexFinger = hand[8];
+
+  let currentX = indexFinger.x;
+
+  if (!cooldown) {
+    if (currentX - prevX > 0.08) {
+      statusText.innerText = "👉 Swipe Right → Next";
+      nextSlide();
+      triggerCooldown();
     }
-  } else {
-    statusText.innerText = "No Hand ❌";
+    else if (prevX - currentX > 0.08) {
+      statusText.innerText = "👈 Swipe Left → Previous";
+      prevSlide();
+      triggerCooldown();
+    }
   }
+
+  prevX = currentX;
 });
+
+function triggerCooldown() {
+  cooldown = true;
+  setTimeout(() => cooldown = false, 1000);
+}
 
 // Start Camera
 const camera = new Camera(video, {
   onFrame: async () => {
     await hands.send({ image: video });
   },
-  width: 400,
-  height: 300
+  width: 300,
+  height: 200
 });
 
 camera.start();

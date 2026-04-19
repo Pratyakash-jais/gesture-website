@@ -1,14 +1,21 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Gesture Website</title>
+  <title>Gesture Slides</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<h1>✋ Gesture Control Website</h1>
+<h1>👋 Gesture Slide Control</h1>
+
+<div class="slider">
+  <div class="slide active">Slide 1 🚀</div>
+  <div class="slide">Slide 2 📊</div>
+  <div class="slide">Slide 3 🎯</div>
+</div>
+
 <video id="video" autoplay></video>
-<p id="status">Detecting...</p>
+<p id="status">Show gesture...</p>
 
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils"></script>
